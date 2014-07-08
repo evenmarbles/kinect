@@ -13,17 +13,17 @@
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
 
-#include "VectorClasses.h"
-
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include <math.h>
 
 #include <iostream>
 #include <sstream>
 
+#include "main.h"
+#include "glut.h"
+#include "VectorClasses.h"
 
-#define width 640
-#define height 480
+
 
 bool testTracked = FALSE;
 char* outputText = "empty";
@@ -40,17 +40,9 @@ INuiSensor* sensor;            // The kinect sensor
 // Stores the coordinates of each joint
 Vector4 skeletonPosition[NUI_SKELETON_POSITION_COUNT];
 
-void draw(void);
 
-bool init(int argc, char* argv[]) {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(width,height);
-    glutCreateWindow("Skeleton Angles");
-    glutDisplayFunc(draw);
-    glutIdleFunc(draw);
-    return true;
-}
+
+
 
 bool initKinect() {
 	// Get a working kinect sensor
@@ -134,6 +126,41 @@ GLfloat* SkeletonToScreen(Vector4 skeletonPoint)
 	GLfloat pointIn2D[2] = { screenPointX, screenPointY };
 
 	return pointIn2D;
+}
+
+float threePointAngle(Vector4 pointA, Vector4 pointMid, Vector4 pointB)
+{
+	// Calculating the relative angle of two joints given by 3 connected points
+	Vector3D& vectorJoint1toJoint2 = Vector3D(pointMid.x - pointA.x, pointMid.y - pointA.y, pointMid.z - pointA.z);
+	Vector3D& vectorJoint2toJoint3 = Vector3D(pointMid.x - pointB.x, pointMid.y - pointB.y, pointMid.z - pointB.z);
+	vectorJoint1toJoint2.Normalize();
+	vectorJoint2toJoint3.Normalize();
+
+	Vector3D crossProduct = vectorJoint1toJoint2 % vectorJoint2toJoint3;
+	float crossProductLength = crossProduct.z;
+	float dotProduct = vectorJoint1toJoint2 * vectorJoint2toJoint3;
+	float segmentAngle = atan2(crossProductLength, dotProduct);
+
+	float degreesJoints = segmentAngle * (180 / M_PI);
+
+	return fabsf(degreesJoints);
+}
+
+float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
+{
+	// Calculating the relative angle of two joints given their vectors
+	vectorA.Normalize();
+	vectorB.Normalize();
+
+	Vector3D crossProduct = vectorA % vectorB;
+	float crossProductLength = crossProduct.z;
+	float dotProduct = vectorA * vectorB;
+	float segmentAngle = atan2(crossProductLength, dotProduct);
+
+	float degreesJoints = segmentAngle * (180 / M_PI);
+
+	//return fabsf(degreesJoints);
+	return degreesJoints;
 }
 
 void drawKinectData() {
@@ -267,21 +294,10 @@ void drawKinectData() {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 	}
 
-	// Calculating the relative angle of two joints given by 3 connected points
-	Vector3D& vectorJoint1toJoint2 = Vector3D(le.x - lw.x, le.y - lw.y, le.z - lw.z);
-	Vector3D& vectorJoint2toJoint3 = Vector3D(le.x - ls.x, le.y - ls.y, le.z - ls.z);
-	vectorJoint1toJoint2.Normalize();
-	vectorJoint2toJoint3.Normalize();
-
-	Vector3D crossProduct = vectorJoint1toJoint2 % vectorJoint2toJoint3;
-	float crossProductLength = crossProduct.z;
-	float dotProduct = vectorJoint1toJoint2 * vectorJoint2toJoint3;
-	float segmentAngle = atan2(crossProductLength, dotProduct);
-
-	float degreesJoints = segmentAngle * (180 / M_PI);
-	
-	glRasterPos2f(SkeletonToScreen(le)[0], SkeletonToScreen(le)[1]-20);
-	float fVal = degreesJoints;
+	glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
+	Vector3D& leftUpperLeg = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z - lk.z);
+	Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
+	float fVal = twoVectorAngle(leftUpperLeg, jointAttachedPendulum);
 	char cVal[32];
 	sprintf_s(cVal, "%f", fVal);
 	outputText = cVal;
@@ -292,14 +308,7 @@ void drawKinectData() {
 }
 
 
-void draw() {
-   drawKinectData();
-   glutSwapBuffers();
-}
 
-void execute() {
-    glutMainLoop();
-}
 
 int main(int argc, char* argv[]) {
     if (!init(argc, argv)) return 1;

@@ -11,9 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="glut.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="glut.h" />
+    <ClInclude Include="main.h" />
     <ClInclude Include="VectorClasses.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
