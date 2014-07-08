@@ -13,7 +13,7 @@
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
 
-#include <Vector3D.cpp>
+#include "VectorClasses.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -267,33 +267,21 @@ void drawKinectData() {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 	}
 
-
-	// const Vector4& lh = skeletonPosition[NUI_SKELETON_POSITION_HAND_LEFT];
-	Vector3D vectorJoint1toJoint2 = Vector3D(le.x - lw.x, le.y - lw.y, le.z - lw.z);
-
-	Vector3D vectorJoint2toJoint3 = Vector3D(le.x - ls.x, le.y - ls.y, le.z - ls.z);
-
+	// Calculating the relative angle of two joints given by 3 connected points
+	Vector3D& vectorJoint1toJoint2 = Vector3D(le.x - lw.x, le.y - lw.y, le.z - lw.z);
+	Vector3D& vectorJoint2toJoint3 = Vector3D(le.x - ls.x, le.y - ls.y, le.z - ls.z);
 	vectorJoint1toJoint2.Normalize();
-
 	vectorJoint2toJoint3.Normalize();
 
-	Vector3D crossProduct = Cross(vectorJoint1toJoint2, vectorJoint2toJoint3);
+	Vector3D crossProduct = vectorJoint1toJoint2 % vectorJoint2toJoint3;
+	float crossProductLength = crossProduct.z;
+	float dotProduct = vectorJoint1toJoint2 * vectorJoint2toJoint3;
+	float segmentAngle = atan2(crossProductLength, dotProduct);
 
-
-	float xd = vectorJoint1toJoint2.x - vectorJoint2toJoint3.x;
-	float yd = vectorJoint1toJoint2.y - vectorJoint2toJoint3.y;
-	float zd = vectorJoint1toJoint2.z - vectorJoint2toJoint3.z;
-	double distanceVectors = std::sqrt(xd * xd + yd * yd + zd * zd);
-
-	double dotProduct = Dot(vectorJoint1toJoint2, vectorJoint2toJoint3);
-
-	double segmentAngle = std::acos(dotProduct/distanceVectors);
-
-	// Convert the result to degrees.
-	double degrees = segmentAngle * (180 / M_PI);
+	float degreesJoints = segmentAngle * (180 / M_PI);
 	
 	glRasterPos2f(SkeletonToScreen(le)[0], SkeletonToScreen(le)[1]-20);
-	float fVal = degrees;
+	float fVal = degreesJoints;
 	char cVal[32];
 	sprintf_s(cVal, "%f", fVal);
 	outputText = cVal;
