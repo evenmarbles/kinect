@@ -293,12 +293,22 @@ void drawKinectData() {
 	for (i = 0; i < len; i++) {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 	}
-
+	
+	
 	glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
-	Vector3D& leftUpperLeg = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z - lk.z);
+	Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, 0);
 	Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
-	float fVal = twoVectorAngle(leftUpperLeg, jointAttachedPendulum);
+	float fVal = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
 	char cVal[32];
+	sprintf_s(cVal, "%f", fVal);
+	outputText = cVal;
+	for (i = 0; i < 4; i++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
+	}
+
+	glRasterPos2f(SkeletonToScreen(lhip)[0] - 20, SkeletonToScreen(lhip)[1] - 40);
+	Vector3D& leftUpperLegZ = Vector3D(0, lhip.y - lk.y, lhip.z - lk.z);
+	fVal = twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
 	sprintf_s(cVal, "%f", fVal);
 	outputText = cVal;
 	for (i = 0; i < 4; i++) {
