@@ -18,6 +18,9 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
+#include <time.h>
+#include <string>
 
 #include "main.h"
 #include "glut.h"
@@ -27,6 +30,7 @@
 
 bool testTracked = FALSE;
 char* outputText = "empty";
+std::ofstream output_file;
 
 // OpenGL Variables
 GLuint textureId;              // ID of the texture to contain Kinect RGB Data
@@ -153,7 +157,7 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
 	vectorB.Normalize();
 
 	Vector3D crossProduct = vectorA % vectorB;
-	float crossProductLength = crossProduct.z;
+	float crossProductLength = crossProduct.x;
 	float dotProduct = vectorA * vectorB;
 	float segmentAngle = atan2(crossProductLength, dotProduct);
 
@@ -281,37 +285,45 @@ void drawKinectData() {
 	// Screentext
 	if (testTracked){
 		outputText = "Skeleton tracked!";
-		glColor3f(0.f, 1.f, 0.f);
+		glColor3f(0.f, 1.f, 0.f);	
+	
+		glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
+		// z coordinate unchanged (lhip.z) to get angle in x-achsis
+		Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
+		Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
+		float fVal = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
+		// Write to File
+		output_file << fVal << " ";
+		// Write to Screen
+		char cVal[32];
+		sprintf_s(cVal, "%f", fVal);
+		outputText = cVal;
+		for (int i = 0; i < 4; i++) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
+		}
+
+		glRasterPos2f(SkeletonToScreen(lhip)[0] - 20, SkeletonToScreen(lhip)[1] - 40);
+		// x coordinate unchanged (lhip.x) to get angle in z-achsis
+		// MATH IS NOT CORRECT IN THE ZY PLANE ANGLE CALCULATION RIGHT NOW! So using z coordinate instead.
+		//Vector3D& leftUpperLegZ = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
+		fVal = lk.z; //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
+		// Write to File
+		output_file << fVal << std::endl;
+		// Write to Screen
+		sprintf_s(cVal, "%f", fVal);
+		outputText = cVal;
+		for (int i = 0; i < 4; i++) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
+		}
 	}
 	else {
 		outputText = "Skeleton not yet tracked!";
 		glColor3f(1.f, 0.f, 0.f);
 	}
 	glRasterPos2f(10, 20);
-	int len, i;
+	int len;
 	len = (int)strlen(outputText);
-	for (i = 0; i < len; i++) {
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
-	}
-	
-	
-	glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
-	Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, 0);
-	Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
-	float fVal = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
-	char cVal[32];
-	sprintf_s(cVal, "%f", fVal);
-	outputText = cVal;
-	for (i = 0; i < 4; i++) {
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
-	}
-
-	glRasterPos2f(SkeletonToScreen(lhip)[0] - 20, SkeletonToScreen(lhip)[1] - 40);
-	Vector3D& leftUpperLegZ = Vector3D(0, lhip.y - lk.y, lhip.z - lk.z);
-	fVal = twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
-	sprintf_s(cVal, "%f", fVal);
-	outputText = cVal;
-	for (i = 0; i < 4; i++) {
+	for (int i = 0; i < len; i++) {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 	}
 
@@ -324,8 +336,20 @@ int main(int argc, char* argv[]) {
     if (!init(argc, argv)) return 1;
     if (!initKinect()) return 1;
 
-	// Testing the bitstream.
+	// Write-to file
+	time_t rawtime;
+	struct tm * timeinfo;
+	char buffer[80];
 
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(buffer, 80, "Kinect %Y_%m_%d %H-%M", timeinfo);
+
+	std::string file_name = std::string(buffer) + ".txt";
+	output_file.open(file_name); 
+	output_file << std::flush;
+
+	//output_file << file_name << std::endl;
 
     // Initialize textures
     glGenTextures(1, &textureId);
