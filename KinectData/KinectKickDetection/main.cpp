@@ -338,12 +338,12 @@ int main(int argc, char* argv[]) {
 
 	// Write-to file
 	time_t rawtime;
-	struct tm * timeinfo;
+	struct tm timeinfo;
 	char buffer[80];
 
 	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(buffer, 80, "Kinect %Y_%m_%d %H-%M", timeinfo);
+	localtime_s(&timeinfo, &rawtime);
+	strftime(buffer, 80, "Kinect %Y_%m_%d %H-%M-%S", &timeinfo);
 
 	std::string file_name = std::string(buffer) + ".txt";
 	output_file.open(file_name); 
