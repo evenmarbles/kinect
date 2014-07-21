@@ -32,6 +32,12 @@ bool testTracked = FALSE;
 char* outputText = "empty";
 std::ofstream output_file;
 
+// Left leg is 1. Right leg is 2. Default leg is left.
+int active_leg = 1;
+
+// Program status
+bool record_data = FALSE;
+
 // OpenGL Variables
 GLuint textureId;              // ID of the texture to contain Kinect RGB Data
 GLubyte data[width*height*4];  // BGRA array containing the texture data
