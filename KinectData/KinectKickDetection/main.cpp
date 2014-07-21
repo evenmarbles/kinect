@@ -36,7 +36,10 @@ struct data_stream_node {
 	int xangle;
 	int zangle;
 	data_stream_node * next;
-} data_stream;
+};
+
+data_stream_node * data_stream;
+data_stream_node * current_node;
 
  
 // Left leg is 1. Right leg is 2. Default leg is left.
@@ -182,10 +185,51 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
 	return degreesJoints;
 }
 
-// incomplete
+// fill data structure
 void appendData(int xval, int zval){
-	xval;
-	zval;
+	data_stream_node * new_node;
+	new_node = new data_stream_node;
+	new_node->xangle = xval;
+	new_node->zangle = zval;
+	new_node->next = NULL;
+	current_node->next = new_node;
+	current_node = new_node;
+}
+
+void writePickle(){
+	int data_length = 0;
+	current_node = data_stream;
+	// find length of linked list
+	while (current_node->next != NULL){
+		data_length++;
+		current_node = current_node->next;
+	}
+	// create arrays to hold data
+	int * xarray;
+	xarray = new int[data_length];
+	int * zarray;
+	zarray = new int[data_length];
+	// fill arrays, first node holds no data
+	current_node = data_stream->next;
+	data_stream_node * temp_node;
+	for (int i = 0; i < data_length - 1; i++){
+		xarray[i] = current_node->xangle;
+		zarray[i] = current_node->zangle;
+		temp_node = current_node;
+		current_node = temp_node->next;
+		delete temp_node;
+	}
+	current_node = data_stream;
+
+	for (int i = 0; i < data_length - 1; i++){
+		output_file << xarray[i] << ",";
+	}
+	output_file << std::endl;
+	for (int i = 0; i < data_length - 1; i++){
+		output_file << zarray[i] << ",";
+	}
+
+
 }
 
 void drawKinectData() {
@@ -303,7 +347,8 @@ void drawKinectData() {
 	}
 	glEnd();
 
-	float fVal1, fVal2;
+	float fVal1 = 0;
+	float fVal2 = 0;
 	// Screentext
 	if (testTracked){
 		outputText = "Skeleton tracked!";
@@ -315,7 +360,7 @@ void drawKinectData() {
 		Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
 		fVal1 = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
 		// Write to File
-		output_file << fVal1 << " ";
+		//output_file << fVal1 << " ";
 		// Write to Screen
 		char cVal[32];
 		sprintf_s(cVal, "%f", fVal1);
@@ -330,7 +375,7 @@ void drawKinectData() {
 		//Vector3D& leftUpperLegZ = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
 		fVal2 = lk.z; //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
 		// Write to File
-		output_file << fVal2 << std::endl;
+		//output_file << fVal2 << std::endl;
 		// Write to Screen
 		sprintf_s(cVal, "%f", fVal2);
 		outputText = cVal;
@@ -353,15 +398,15 @@ void drawKinectData() {
 	if (record_data == TRUE && save_data == FALSE){
 		appendData(fVal1, fVal2);
 	}
-	else if (record_data == TRUE && save_data == TRUE){
-		appendData(fVal1, fVal2);
+	else if (save_data == TRUE){
 		record_data = FALSE;
-		// do pickle save;
-		save_data == FALSE;
+		save_data = FALSE;
+		appendData(fVal1, fVal2);
+		writePickle();
 	}
-	else if (record_data == FALSE && save_data == TRUE && data_stream.next != NULL){
-		// do pickle save
+	else if (record_data == FALSE && save_data == TRUE && data_stream->next != NULL){
 		save_data == FALSE;
+		writePickle();
 	}
 
 }
@@ -392,9 +437,13 @@ int main(int argc, char* argv[]) {
 
 	//output_file << file_name << std::endl;
 
-	//// data
-	//data_stream_node * data_stream = new data_stream_node;
-	//data_stream->next = NULL;
+	
+	// setting up the data structure
+	data_stream = new data_stream_node;
+	data_stream->next = NULL;
+	data_stream->xangle = 0;
+	data_stream->zangle = 0;
+	current_node = data_stream;
 
 
     // Initialize textures

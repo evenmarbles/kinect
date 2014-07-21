@@ -25,7 +25,7 @@ void menu(int num){
 		record_data = FALSE;
 	}
 	else if (num == 5){
-		// save pickle file
+		save_data = TRUE;
 	}
 	glutPostRedisplay();
 }
@@ -45,7 +45,7 @@ void createMenu(void){
 	glutAddSubMenu("Recording", recordmenu_id);
 	glutAddMenuEntry("Quit", 0);
 	
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	glutAttachMenu(GLUT_LEFT_BUTTON);
 }
 
 void draw() {
