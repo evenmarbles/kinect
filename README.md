@@ -31,3 +31,14 @@ C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include
 
 Copy the glew32.dll in the bin\release\win32 folder of the archive to
 C:\Windows\SysWOW64 (C:\Windows\System32 for 32-bit Windows)
+
+Note
+====
+
+If you are setting up your own Visual Studio project, in the project's properties:
+
+Under C/C++ > Additional Include Directories, add "$(KINECTSDK10_DIR)\include".
+Under Linker > Additional Library Directories, add "$(KINECTSDK10_DIR)\lib\x86".
+Under Linker > Input > Additional Dependencies, add "kinect10.lib".
+Under Linker > System > Subsystem, add "Windows (/SUBSYTEM:WINDOWS)".
+Under Linker > Advanced > Entry Point, add "mainCRTStartup".
