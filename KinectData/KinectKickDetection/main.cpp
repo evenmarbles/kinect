@@ -32,11 +32,20 @@ bool testTracked = FALSE;
 char* outputText = "empty";
 std::ofstream output_file;
 
+struct data_stream_node {
+	int xangle;
+	int zangle;
+	data_stream_node * next;
+} data_stream;
+
+ 
 // Left leg is 1. Right leg is 2. Default leg is left.
 int active_leg = 1;
 
 // Program status
 bool record_data = FALSE;
+bool save_data = FALSE;
+
 
 // OpenGL Variables
 GLuint textureId;              // ID of the texture to contain Kinect RGB Data
@@ -173,6 +182,12 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
 	return degreesJoints;
 }
 
+// incomplete
+void appendData(int xval, int zval){
+	xval;
+	zval;
+}
+
 void drawKinectData() {
     glBindTexture(GL_TEXTURE_2D, textureId);
     getKinectData(data);
@@ -288,6 +303,7 @@ void drawKinectData() {
 	}
 	glEnd();
 
+	float fVal1, fVal2;
 	// Screentext
 	if (testTracked){
 		outputText = "Skeleton tracked!";
@@ -297,12 +313,12 @@ void drawKinectData() {
 		// z coordinate unchanged (lhip.z) to get angle in x-achsis
 		Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
 		Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
-		float fVal = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
+		fVal1 = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
 		// Write to File
-		output_file << fVal << " ";
+		output_file << fVal1 << " ";
 		// Write to Screen
 		char cVal[32];
-		sprintf_s(cVal, "%f", fVal);
+		sprintf_s(cVal, "%f", fVal1);
 		outputText = cVal;
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
@@ -312,11 +328,11 @@ void drawKinectData() {
 		// x coordinate unchanged (lhip.x) to get angle in z-achsis
 		// MATH IS NOT CORRECT IN THE ZY PLANE ANGLE CALCULATION RIGHT NOW! So using z coordinate instead.
 		//Vector3D& leftUpperLegZ = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
-		fVal = lk.z; //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
+		fVal2 = lk.z; //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
 		// Write to File
-		output_file << fVal << std::endl;
+		output_file << fVal2 << std::endl;
 		// Write to Screen
-		sprintf_s(cVal, "%f", fVal);
+		sprintf_s(cVal, "%f", fVal2);
 		outputText = cVal;
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
@@ -333,7 +349,25 @@ void drawKinectData() {
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 	}
 
+    // Program actions
+	if (record_data == TRUE && save_data == FALSE){
+		appendData(fVal1, fVal2);
+	}
+	else if (record_data == TRUE && save_data == TRUE){
+		appendData(fVal1, fVal2);
+		record_data = FALSE;
+		// do pickle save;
+		save_data == FALSE;
+	}
+	else if (record_data == FALSE && save_data == TRUE && data_stream.next != NULL){
+		// do pickle save
+		save_data == FALSE;
+	}
+
 }
+
+
+
 
 
 
@@ -355,7 +389,13 @@ int main(int argc, char* argv[]) {
 	output_file.open(file_name); 
 	output_file << std::flush;
 
+
 	//output_file << file_name << std::endl;
+
+	//// data
+	//data_stream_node * data_stream = new data_stream_node;
+	//data_stream->next = NULL;
+
 
     // Initialize textures
     glGenTextures(1, &textureId);

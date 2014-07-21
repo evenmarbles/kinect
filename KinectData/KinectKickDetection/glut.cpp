@@ -61,7 +61,7 @@ bool init(int argc, char* argv[]) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowSize(width, height);
-	window = glutCreateWindow("Skeleton Angles");
+	window = glutCreateWindow("Kinect Skeleton");
 	createMenu();
 	glutDisplayFunc(draw);
 	glutIdleFunc(draw);
