@@ -2,6 +2,8 @@
 #include "main.h"
 
 static int menu_id;
+static int outputmenu_id;
+static int guardmenu_id;
 static int recordmenu_id;
 static int legmenu_id;
 static int window;
@@ -19,29 +21,52 @@ void menu(int num){
 		active_leg = 2;
 	}
 	else if (num == 3){
-		record_data = TRUE;
+		guarded_data = TRUE;
 	}
 	else if (num == 4){
-		record_data = FALSE;
+		guarded_data = FALSE;
 	}
 	else if (num == 5){
+		pickled_data = FALSE;
+	}
+	else if (num == 6){
+		pickled_data = TRUE;
+	}
+	else if (num == 7){
+		record_data = TRUE;
+	}
+	else if (num == 8){
+		record_data = FALSE;
+	}
+	else if (num == 9){
 		save_data = TRUE;
 	}
 	glutPostRedisplay();
+	menu_used = TRUE;
 }
 
 void createMenu(void){
-	recordmenu_id = glutCreateMenu(menu);
-	glutAddMenuEntry("Start", 3);
-	glutAddMenuEntry("Stop", 4);
-	glutAddMenuEntry("Save", 5); 
-
 	legmenu_id = glutCreateMenu(menu);
 	glutAddMenuEntry("Left", 1);
 	glutAddMenuEntry("Right", 2);
 
+	guardmenu_id = glutCreateMenu(menu);
+	glutAddMenuEntry("Enabled", 3);
+	glutAddMenuEntry("Disabled", 4);
+	
+	outputmenu_id = glutCreateMenu(menu);
+	glutAddMenuEntry("Text File", 5);
+	glutAddMenuEntry("Python Pickle", 6);
+
+	recordmenu_id = glutCreateMenu(menu);
+	glutAddMenuEntry("Start", 7);
+	glutAddMenuEntry("Stop", 8);
+	glutAddMenuEntry("Save", 9); 
+
 	menu_id = glutCreateMenu(menu);
 	glutAddSubMenu("Select Leg", legmenu_id);
+	glutAddSubMenu("Guards", guardmenu_id);
+	glutAddSubMenu("Formatting", outputmenu_id);
 	glutAddSubMenu("Recording", recordmenu_id);
 	glutAddMenuEntry("Quit", 0);
 	

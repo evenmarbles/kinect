@@ -2,6 +2,8 @@
 //
 // requires freeglut and glew 
 
+
+
 #include <Windows.h>
 #include <Ole2.h>
 
@@ -21,6 +23,7 @@
 #include <fstream>
 #include <time.h>
 #include <string>
+#include <array>
 
 #include "main.h"
 #include "glut.h"
@@ -45,9 +48,12 @@ data_stream_node * current_node;
 // Left leg is 1. Right leg is 2. Default leg is left.
 int active_leg = 1;
 
-// Program status
+// Program status globals
 bool record_data = FALSE;
 bool save_data = FALSE;
+bool guarded_data = TRUE;
+bool pickled_data = TRUE;
+bool menu_used = FALSE;
 
 
 // OpenGL Variables
@@ -197,6 +203,7 @@ void appendData(int xval, int zval){
 }
 
 void writePickle(){
+
 	int data_length = 0;
 	current_node = data_stream;
 	// find length of linked list
@@ -209,6 +216,7 @@ void writePickle(){
 	xarray = new int[data_length];
 	int * zarray;
 	zarray = new int[data_length];
+
 	// fill arrays, first node holds no data
 	current_node = data_stream->next;
 	data_stream_node * temp_node;
@@ -220,16 +228,17 @@ void writePickle(){
 		delete temp_node;
 	}
 	current_node = data_stream;
+	
+	// construct file name from time
+	time_t rawtime;
+	struct tm timeinfo;
+	char buffer[80];
 
-	for (int i = 0; i < data_length - 1; i++){
-		output_file << xarray[i] << ",";
-	}
-	output_file << std::endl;
-	for (int i = 0; i < data_length - 1; i++){
-		output_file << zarray[i] << ",";
-	}
-
-
+	time(&rawtime);
+	localtime_s(&timeinfo, &rawtime);
+	strftime(buffer, 80, "Kinect %Y_%m_%d %H-%M-%S", &timeinfo);
+	
+	
 }
 
 void drawKinectData() {
@@ -351,9 +360,7 @@ void drawKinectData() {
 	float fVal2 = 0;
 	// Screentext
 	if (testTracked){
-		outputText = "Skeleton tracked!";
-		glColor3f(0.f, 1.f, 0.f);	
-	
+			
 		glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
 		// z coordinate unchanged (lhip.z) to get angle in x-achsis
 		Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
@@ -383,15 +390,16 @@ void drawKinectData() {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
 	}
-	else {
-		outputText = "Skeleton not yet tracked!";
-		glColor3f(1.f, 0.f, 0.f);
-	}
-	glRasterPos2f(10, 20);
-	int len;
-	len = (int)strlen(outputText);
-	for (int i = 0; i < len; i++) {
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
+	
+	if (menu_used == FALSE){
+		outputText = "Left click on screen to use menu!";
+		glColor3f(255, 0, 0);
+		glRasterPos2f(10, 20);
+		int len;
+		len = (int)strlen(outputText);
+		for (int i = 0; i < len; i++) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
+		}
 	}
 
     // Program actions
@@ -420,23 +428,6 @@ void drawKinectData() {
 int main(int argc, char* argv[]) {
     if (!init(argc, argv)) return 1;
     if (!initKinect()) return 1;
-
-	// Write-to file
-	time_t rawtime;
-	struct tm timeinfo;
-	char buffer[80];
-
-	time(&rawtime);
-	localtime_s(&timeinfo, &rawtime);
-	strftime(buffer, 80, "Kinect %Y_%m_%d %H-%M-%S", &timeinfo);
-
-	std::string file_name = std::string(buffer) + ".txt";
-	output_file.open(file_name); 
-	output_file << std::flush;
-
-
-	//output_file << file_name << std::endl;
-
 	
 	// setting up the data structure
 	data_stream = new data_stream_node;
