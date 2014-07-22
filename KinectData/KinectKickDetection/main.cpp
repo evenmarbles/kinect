@@ -51,9 +51,10 @@ int active_leg = 1;
 // Program status globals
 bool record_data = FALSE;
 bool save_data = FALSE;
-bool guarded_data = TRUE;
+bool guarded_data = FALSE;
 bool pickled_data = TRUE;
 bool menu_used = FALSE;
+bool guard_trap = FALSE;
 
 
 // OpenGL Variables
@@ -181,7 +182,7 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
 	vectorB.Normalize();
 
 	Vector3D crossProduct = vectorA % vectorB;
-	float crossProductLength = crossProduct.x;
+	float crossProductLength = crossProduct.z;
 	float dotProduct = vectorA * vectorB;
 	float segmentAngle = atan2(crossProductLength, dotProduct);
 
@@ -411,7 +412,7 @@ void drawKinectData() {
 			
 		glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
 		// z coordinate unchanged (lhip.z) to get angle in x-achsis
-		Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
+		Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, 0);
 		Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
 		fVal1 = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
 		// Write to File
@@ -437,6 +438,17 @@ void drawKinectData() {
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
+		
+		// catch legs that are not fully tracked and bad angles
+		if (lk.w == 0 || lhip.w == 0){
+			guard_trap = TRUE;
+		}
+		if (fVal1 > 45.29){
+			guard_trap = TRUE;
+		}
+		if (guarded_data == FALSE){
+			guard_trap = FALSE;
+		}
 	}
 	
 	if (menu_used == FALSE){
@@ -450,17 +462,19 @@ void drawKinectData() {
 		}
 	}
 
-    // Program actions
+
+	
+	// Program actions
 	if (record_data == TRUE && save_data == FALSE){
 		appendData(fVal1, fVal2);
 	}
-	else if (save_data == TRUE){
+	else if (record_data == TRUE && save_data == TRUE && guard_trap == FALSE){
 		record_data = FALSE;
 		save_data = FALSE;
 		appendData(fVal1, fVal2);
 		writePickle();
 	}
-	else if (record_data == FALSE && save_data == TRUE && data_stream->next != NULL){
+	else if (record_data == FALSE && save_data == TRUE && data_stream->next != NULL && guard_trap == FALSE){
 		save_data == FALSE;
 		writePickle();
 	}
