@@ -238,7 +238,55 @@ void writePickle(){
 	localtime_s(&timeinfo, &rawtime);
 	strftime(buffer, 80, "Kinect %Y_%m_%d %H-%M-%S", &timeinfo);
 	
-	
+	// create txt file
+	if (pickled_data == FALSE){
+		std::string file_name = std::string(buffer) + ".txt";
+		output_file.open(file_name);
+		output_file << std::flush;
+		output_file << "frames," << std::endl;
+		output_file << data_length - 1 << "," << std::endl;
+		output_file << "x-angle," << std::endl;
+		for (int i = 0; i < data_length - 1; i++){
+			output_file << xarray[i] << ",";
+		}
+		output_file << std::endl;
+		output_file << "z-angle," << std::endl;
+		for (int i = 0; i < data_length - 1; i++){
+			if (i < data_length - 2){
+				output_file << zarray[i] << ",";
+			}
+			else {
+				output_file << zarray[i] << std::endl;
+			}
+		}
+		output_file.close();
+	}
+	// create python pickle file
+	else { // pickled_data == TRUE
+		std::string file_name = std::string(buffer) + ".p";
+		output_file.open(file_name, std::ofstream::binary);
+		output_file << std::flush;
+		output_file << "(dp0" << "\n";
+		output_file << "S'frames'" << "\n";
+		output_file << "p1" << "\n";
+		output_file << "I" << data_length - 1 << "\n";
+		output_file << "sS'xangle'" << "\n";
+		output_file << "p2" << "\n";
+		output_file << "(lp3" << "\n";
+		output_file << "F" << xarray[0] << "\n";
+		for (int i = 1; i < data_length - 1; i++){
+			output_file << "aF" << xarray[i] << "\n";
+		}
+		output_file << "asS'zangle'" << "\n";
+		output_file << "p4" << "\n";
+		output_file << "(lp5" << "\n";
+		output_file << "F" << zarray[0] << "\n";
+		for (int i = 1; i < data_length - 1; i++){
+			output_file << "aF" << zarray[i] << "\n";
+		}
+		output_file << "as.";
+		output_file.close();
+	}
 }
 
 void drawKinectData() {
