@@ -405,40 +405,44 @@ void drawKinectData() {
 	}
 	glEnd();
 
+	// Leg angles and their output to screen.
 	float fVal1 = 0;
 	float fVal2 = 0;
-	// Screentext
 	if (testTracked){
-			
-		glRasterPos2f(SkeletonToScreen(lhip)[0]-20, SkeletonToScreen(lhip)[1]-20);
-		// z coordinate unchanged (lhip.z) to get angle in x-achsis
-		Vector3D& leftUpperLegX = Vector3D(lhip.x - lk.x, lhip.y - lk.y, 0);
+		Vector3D* UpperLegX = NULL;
+		int screen_position[2];
+		if (active_leg == 1){ // Left leg is selected. Default value.
+			UpperLegX = new Vector3D(lhip.x - lk.x, lhip.y - lk.y, 0);
+			screen_position[0] = SkeletonToScreen(lhip)[0];
+			screen_position[1] = SkeletonToScreen(lhip)[1];
+		}
+		else if (active_leg == 2){ // Left leg is selected.
+			UpperLegX = new Vector3D(rhip.x - rk.x, rhip.y - rk.y, 0);
+			screen_position[0] = SkeletonToScreen(rhip)[0];
+			screen_position[1] = SkeletonToScreen(rhip)[1];
+		}
+		// Creating vector to measure leg angle against and calculating the angles for both XY-plane and ZY-plane.		
 		Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
-		fVal1 = twoVectorAngle(leftUpperLegX, jointAttachedPendulum);
-		// Write to File
-		//output_file << fVal1 << " ";
-		// Write to Screen
+		fVal1 = twoVectorAngle(*UpperLegX, jointAttachedPendulum);
+		fVal2 = lk.z; // temp, fix this angle calc! //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
+		delete UpperLegX;
+
+		// Write angle in XY-plane to screen by converting float to char array and printing to screen above the joints.
+		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 20);
 		char cVal[32];
 		sprintf_s(cVal, "%f", fVal1);
 		outputText = cVal;
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
-
-		glRasterPos2f(SkeletonToScreen(lhip)[0] - 20, SkeletonToScreen(lhip)[1] - 40);
-		// x coordinate unchanged (lhip.x) to get angle in z-achsis
-		// MATH IS NOT CORRECT IN THE ZY PLANE ANGLE CALCULATION RIGHT NOW! So using z coordinate instead.
-		//Vector3D& leftUpperLegZ = Vector3D(lhip.x - lk.x, lhip.y - lk.y, lhip.z);
-		fVal2 = lk.z; //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
-		// Write to File
-		//output_file << fVal2 << std::endl;
-		// Write to Screen
+		// New screen position for angle in ZY plane.
+		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 40);
 		sprintf_s(cVal, "%f", fVal2);
 		outputText = cVal;
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
-		
+		// Guards:
 		// catch legs that are not fully tracked and bad angles
 		if (lk.w == 0 || lhip.w == 0){
 			guard_trap = TRUE;
@@ -450,7 +454,7 @@ void drawKinectData() {
 			guard_trap = FALSE;
 		}
 	}
-	
+	// Nag message about menu appears on screen if menu has not been used yet.
 	if (menu_used == FALSE){
 		outputText = "Left click on screen to use menu!";
 		glColor3f(255, 0, 0);
@@ -460,10 +464,7 @@ void drawKinectData() {
 		for (int i = 0; i < len; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
-	}
-
-
-	
+	}	
 	// Program actions
 	if (record_data == TRUE && save_data == FALSE){
 		appendData(fVal1, fVal2);
@@ -491,14 +492,13 @@ int main(int argc, char* argv[]) {
     if (!init(argc, argv)) return 1;
     if (!initKinect()) return 1;
 	
-	// setting up the data structure
+	// Setting up the data structure
 	data_stream = new data_stream_node;
 	data_stream->next = NULL;
 	data_stream->xangle = 0;
 	data_stream->zangle = 0;
 	current_node = data_stream;
-
-
+	
     // Initialize textures
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
