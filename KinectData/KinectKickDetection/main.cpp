@@ -175,21 +175,30 @@ float threePointAngle(Vector4 pointA, Vector4 pointMid, Vector4 pointB)
 	return fabsf(degreesJoints);
 }
 
-float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
+float twoVectorAngle(Vector3D vectorA, Vector3D vectorB, Vector3D planeNormal)
 {
 	// Calculating the relative angle of two joints given their vectors
+
+
 	vectorA.Normalize();
-	vectorB.Normalize();
+	vectorB.Normalize();	
 
-	Vector3D crossProduct = vectorA % vectorB;
-	float crossProductLength = crossProduct.z;
+	// The minimum angle between the vectors
 	float dotProduct = vectorA * vectorB;
-	float segmentAngle = atan2(crossProductLength, dotProduct);
+	float segmentAngle = acos(dotProduct);
 
-	float degreesJoints = segmentAngle *(180 / M_PI);
+	// Determining the sign
+	Vector3D crossProduct = vectorA % vectorB;
+	float angleSign = planeNormal * crossProduct;
+	if (angleSign < 0){
+		segmentAngle = -segmentAngle;
+	}
 
-	//return fabsf(degreesJoints);
-	return degreesJoints;
+	// uncomment for degrees
+	 segmentAngle = segmentAngle *(180 / M_PI);
+
+	return segmentAngle;
+
 }
 
 // fill data structure
@@ -409,25 +418,39 @@ void drawKinectData() {
 	float fVal1 = 0;
 	float fVal2 = 0;
 	if (testTracked){
-		Vector3D* UpperLegX = NULL;
+		Vector3D* UpperLegRotZ = NULL;
+		Vector3D* UpperLegRotX = NULL;
+		Vector3D* planeNormal = NULL;
 		int screen_position[2];
 		if (active_leg == 1){ // Left leg is selected. Default value.
-			UpperLegX = new Vector3D(lhip.x - lk.x, lhip.y - lk.y, 0);
+			UpperLegRotZ = new Vector3D(lk.x - lhip.x, lk.y - lhip.y, 0);
+			UpperLegRotX = new Vector3D(0, lk.y - lhip.y, lk.z - lhip.z);
+			planeNormal = new Vector3D(0, 0, 1);
 			screen_position[0] = SkeletonToScreen(lhip)[0];
 			screen_position[1] = SkeletonToScreen(lhip)[1];
 		}
 		else if (active_leg == 2){ // Left leg is selected.
-			UpperLegX = new Vector3D(rhip.x - rk.x, rhip.y - rk.y, 0);
+			UpperLegRotZ = new Vector3D(rk.x - rhip.x, rk.y - rhip.y, 0);
+			UpperLegRotX = new Vector3D(0, rk.y - rhip.y, rk.z - rhip.z);
+			planeNormal = new Vector3D(0, 0, -1);
 			screen_position[0] = SkeletonToScreen(rhip)[0];
 			screen_position[1] = SkeletonToScreen(rhip)[1];
 		}
-		// Creating vector to measure leg angle against and calculating the angles for both XY-plane and ZY-plane.		
-		Vector3D& jointAttachedPendulum = Vector3D(0, 1, 0);
-		fVal1 = twoVectorAngle(*UpperLegX, jointAttachedPendulum);
-		fVal2 = lk.z; // temp, fix this angle calc! //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
-		delete UpperLegX;
+		// Creating vector to measure leg angle against and calculating the angles for rotation around z-achsis and x-achsis.		
+		Vector3D& jointAttachedPendulum = Vector3D(0, -1, 0);
+		fVal1 = twoVectorAngle(*UpperLegRotZ, jointAttachedPendulum, *planeNormal);
+		planeNormal = new Vector3D(-1, 0, 0);
+		fVal2 = twoVectorAngle(*UpperLegRotX, jointAttachedPendulum, *planeNormal); 
+
+		delete UpperLegRotZ;
+		UpperLegRotZ = NULL;
+		delete UpperLegRotX;
+		UpperLegRotX = NULL;
+		delete planeNormal;
+		planeNormal = NULL;
 
 		// Write angle of the rotation around z to screen by converting float to char array and printing to screen above the joints.
+		glColor3f(0.f, 1.f, 0.f);
 		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 20);
 		char cVal[32];
 		sprintf_s(cVal, "%f", fVal1);
