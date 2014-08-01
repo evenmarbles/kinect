@@ -36,8 +36,8 @@ char* outputText = "empty";
 std::ofstream output_file;
 
 struct data_stream_node {
-	int xangle;
-	int zangle;
+	int zRotAngle;
+	int xRotAngle;
 	data_stream_node * next;
 };
 
@@ -186,18 +186,18 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB)
 	float dotProduct = vectorA * vectorB;
 	float segmentAngle = atan2(crossProductLength, dotProduct);
 
-	float degreesJoints = segmentAngle * (180 / M_PI);
+	float degreesJoints = segmentAngle *(180 / M_PI);
 
 	//return fabsf(degreesJoints);
 	return degreesJoints;
 }
 
 // fill data structure
-void appendData(int xval, int zval){
+void appendData(int zRotAngle, int xRotAngle){
 	data_stream_node * new_node;
 	new_node = new data_stream_node;
-	new_node->xangle = xval;
-	new_node->zangle = zval;
+	new_node->zRotAngle = zRotAngle;
+	new_node->xRotAngle = xRotAngle;
 	new_node->next = NULL;
 	current_node->next = new_node;
 	current_node = new_node;
@@ -213,17 +213,17 @@ void writePickle(){
 		current_node = current_node->next;
 	}
 	// create arrays to hold data
-	int * xarray;
-	xarray = new int[data_length];
-	int * zarray;
-	zarray = new int[data_length];
+	int * zRotArray;
+	zRotArray = new int[data_length];
+	int * xRotArray;
+	xRotArray = new int[data_length];
 
 	// fill arrays, first node holds no data
 	current_node = data_stream->next;
 	data_stream_node * temp_node;
 	for (int i = 0; i < data_length - 1; i++){
-		xarray[i] = current_node->xangle;
-		zarray[i] = current_node->zangle;
+		zRotArray[i] = current_node->zRotAngle;
+		xRotArray[i] = current_node->xRotAngle;
 		temp_node = current_node;
 		current_node = temp_node->next;
 		delete temp_node;
@@ -246,18 +246,18 @@ void writePickle(){
 		output_file << std::flush;
 		output_file << "frames," << std::endl;
 		output_file << data_length - 1 << "," << std::endl;
-		output_file << "x-angle," << std::endl;
+		output_file << "zRotAngle," << std::endl;
 		for (int i = 0; i < data_length - 1; i++){
-			output_file << xarray[i] << ",";
+			output_file << zRotArray[i] << ",";
 		}
 		output_file << std::endl;
-		output_file << "z-angle," << std::endl;
+		output_file << "xRotAngle," << std::endl;
 		for (int i = 0; i < data_length - 1; i++){
 			if (i < data_length - 2){
-				output_file << zarray[i] << ",";
+				output_file << xRotArray[i] << ",";
 			}
 			else {
-				output_file << zarray[i] << std::endl;
+				output_file << xRotArray[i] << std::endl;
 			}
 		}
 		output_file.close();
@@ -271,19 +271,19 @@ void writePickle(){
 		output_file << "S'frames'" << "\n";
 		output_file << "p1" << "\n";
 		output_file << "I" << data_length - 1 << "\n";
-		output_file << "sS'xangle'" << "\n";
+		output_file << "sS'zRotAngle'" << "\n";
 		output_file << "p2" << "\n";
 		output_file << "(lp3" << "\n";
-		output_file << "F" << xarray[0] << "\n";
+		output_file << "F" << zRotArray[0] << "\n";
 		for (int i = 1; i < data_length - 1; i++){
-			output_file << "aF" << xarray[i] << "\n";
+			output_file << "aF" << zRotArray[i] << "\n";
 		}
-		output_file << "asS'zangle'" << "\n";
+		output_file << "asS'xRotAngle'" << "\n";
 		output_file << "p4" << "\n";
 		output_file << "(lp5" << "\n";
-		output_file << "F" << zarray[0] << "\n";
+		output_file << "F" << xRotArray[0] << "\n";
 		for (int i = 1; i < data_length - 1; i++){
-			output_file << "aF" << zarray[i] << "\n";
+			output_file << "aF" << xRotArray[i] << "\n";
 		}
 		output_file << "as.";
 		output_file.close();
@@ -427,7 +427,7 @@ void drawKinectData() {
 		fVal2 = lk.z; // temp, fix this angle calc! //twoVectorAngle(leftUpperLegZ, jointAttachedPendulum);
 		delete UpperLegX;
 
-		// Write angle in XY-plane to screen by converting float to char array and printing to screen above the joints.
+		// Write angle of the rotation around z to screen by converting float to char array and printing to screen above the joints.
 		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 20);
 		char cVal[32];
 		sprintf_s(cVal, "%f", fVal1);
@@ -435,7 +435,7 @@ void drawKinectData() {
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
-		// New screen position for angle in ZY plane.
+		// New screen position for angle of the rotation around x.
 		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 40);
 		sprintf_s(cVal, "%f", fVal2);
 		outputText = cVal;
@@ -495,8 +495,8 @@ int main(int argc, char* argv[]) {
 	// Setting up the data structure
 	data_stream = new data_stream_node;
 	data_stream->next = NULL;
-	data_stream->xangle = 0;
-	data_stream->zangle = 0;
+	data_stream->zRotAngle = 0;
+	data_stream->xRotAngle = 0;
 	current_node = data_stream;
 	
     // Initialize textures

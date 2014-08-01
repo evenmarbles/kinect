@@ -7,6 +7,10 @@ Extraction of motion capture data from the Kinect
 setup (Visual Studio)
 =====================
 
+Install Kinect for Windows SDK and Kinect for Windows developer toolkit from
+http://www.microsoft.com/en-us/kinectforwindows/develop/downloads-docs.aspx
+
+
 Download and unzip the MSVC freeglut binaries from
 http://www.transmissionzero.co.uk/software/freeglut-devel/
 
@@ -31,6 +35,10 @@ C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include
 
 Copy the glew32.dll in the bin\release\win32 folder of the archive to
 C:\Windows\SysWOW64 (C:\Windows\System32 for 32-bit Windows)
+
+
+Restart PC
+
 
 note
 ====
