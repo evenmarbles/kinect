@@ -222,10 +222,10 @@ void writePickle(){
 		current_node = current_node->next;
 	}
 	// create arrays to hold data
-	int * zRotArray;
-	zRotArray = new int[data_length];
-	int * xRotArray;
-	xRotArray = new int[data_length];
+	float * zRotArray;
+	zRotArray = new float[data_length];
+	float * xRotArray;
+	xRotArray = new float[data_length];
 
 	// fill arrays, first node holds no data
 	current_node = data_stream->next;
@@ -433,7 +433,7 @@ void drawKinectData() {
 		else if (active_leg == 2){ // Left leg is selected.
 			UpperLegRotZ = new Vector3D(rk.x - rhip.x, rk.y - rhip.y, 0);
 			UpperLegRotX = new Vector3D(0, rk.y - rhip.y, rk.z - rhip.z);
-			screen_position[0] = SkeletonToScreen(rhip)[0];
+			screen_position[0] = SkeletonToScreen(rhip)[0]+20; // 20 pixels moved to center it better above joint
 			screen_position[1] = SkeletonToScreen(rhip)[1];
 		}
 		// Creating vector to measure leg angle against and calculating the angles for rotation around z-achsis and x-achsis.		
@@ -455,40 +455,45 @@ void drawKinectData() {
 
 		// Write angle of the rotation around z to screen by converting float to char array and printing to screen above the joints.
 		glColor3f(0.f, 1.f, 0.f);
-		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 20);
+		glRasterPos2f(screen_position[0] - 30, screen_position[1] - 20);
 		char cVal[32];
 		sprintf_s(cVal, "%f", fVal1);
 		outputText = cVal;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
 		// New screen position for angle of the rotation around x.
-		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 40);
+		glRasterPos2f(screen_position[0] - 30, screen_position[1] - 40);
+		sprintf_s(cVal, "%f", fVal2);
+		outputText = cVal;
+		for (int i = 0; i < 5; i++) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
+		}
+		// screen position for facing angle
+		glRasterPos2f(545, 140);
 		sprintf_s(cVal, "%f", facingAngle);
 		outputText = cVal;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
 		
-		// Drawing the orientation cicle
 
 		glLineWidth(5.0);
 		glBegin(GL_LINES);
+		// blue arrow for facing
 		glColor3f(0.f, 0.f, 1.f);
-
-	/*	for (int i = 0; i < 360; i = i+10) {
-		glVertex2f(570 + sin(i) * 50, 70 + cos(i) * 50);
-		glVertex2f(570 + sin(i+5) * 50, 70 + cos(i+5) * 50);
-
-		}*/
-
-		
-		glVertex2f(570, 70);  // -sin for y
-		glVertex2f(570 + cos(facingAngle) * 50 , 70 - sin(facingAngle) * 50); // -sin for y
-
-
+		glLineWidth(5.0);
+		// arrow shaft
+		glVertex2f(570 + sin(facingAngle) * 50, 70 - cos(facingAngle) * 50);
+		glVertex2f(570 - sin(facingAngle) * 50 , 70 + cos(facingAngle) * 50); 
+		// arrow tip 1
+		glVertex2f(570 - sin(facingAngle+0.4) * 30, 70 + cos(facingAngle+0.4) * 30);
+		glVertex2f(570 - sin(facingAngle) * 50, 70 + cos(facingAngle) * 50);
+		// arrow tip 2
+		glVertex2f(570 - sin(facingAngle - 0.4) * 30, 70 + cos(facingAngle - 0.4) * 30);
+		glVertex2f(570 - sin(facingAngle) * 50, 70 + cos(facingAngle) * 50);
 		glEnd();
-
+		
 
 
 
