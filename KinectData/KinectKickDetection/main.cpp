@@ -458,7 +458,7 @@ void drawKinectData() {
 	float fVal1 = 0;
 	float fVal2 = 0;
 	float facingAngle = 0;
-	if (testTracked){
+	if (testTracked && rhip.w == 1 && lhip.w == 1 && rk.w == 1 && lk.w == 1){ // checking to see if all the needed joints are tracked
 		Vector3D* UpperLegRotZ = NULL;
 		Vector3D* UpperLegRotX = NULL;
 
@@ -514,8 +514,7 @@ void drawKinectData() {
 		outputText = cVal;
 		for (int i = 0; i < 5; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
-		}
-		
+		}		
 
 		glLineWidth(5.0);
 		glBegin(GL_LINES);
@@ -532,21 +531,7 @@ void drawKinectData() {
 		glVertex2f(570 - sin(facingAngle - 0.4) * 30, 70 + cos(facingAngle - 0.4) * 30);
 		glVertex2f(570 - sin(facingAngle) * 50, 70 + cos(facingAngle) * 50);
 		glEnd();
-		
 
-
-
-		// Guards:
-		// catch legs that are not fully tracked and bad angles
-		if (lk.w == 0 || lhip.w == 0){
-			guard_trap = TRUE;
-		}
-		if (fVal1 > 45.29){
-			guard_trap = TRUE;
-		}
-		if (guarded_data == FALSE){
-			guard_trap = FALSE;
-		}
 	}
 	// Nag message about menu appears on screen if menu has not been used yet.
 	if (menu_used == FALSE){
@@ -558,7 +543,18 @@ void drawKinectData() {
 		for (int i = 0; i < len; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
-	}	
+	}
+	// Guards:
+	// catch legs that are not fully tracked and bad angles
+	if (lk.w == 0 || lhip.w == 0){
+		guard_trap = TRUE;
+	}
+	if (fVal1 > 45.29){
+		guard_trap = TRUE;
+	}
+	if (guarded_data == FALSE){
+		guard_trap = FALSE;
+	}
 	// Program actions
 	if (record_data == TRUE && save_data == FALSE){
 		appendData(fVal1, fVal2, facingAngle);
