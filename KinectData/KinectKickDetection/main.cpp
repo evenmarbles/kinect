@@ -36,8 +36,9 @@ char* outputText = "empty";
 std::ofstream output_file;
 
 struct data_stream_node {
-	int zRotAngle;
-	int xRotAngle;
+	float zRotAngle;
+	float xRotAngle;
+	float facingAngle;
 	data_stream_node * next;
 };
 
@@ -202,11 +203,12 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB, Vector3D planeNormal)
 }
 
 // fill data structure
-void appendData(int zRotAngle, int xRotAngle){
+void appendData(float zRotAngle, float xRotAngle, float facingAngle){
 	data_stream_node * new_node;
 	new_node = new data_stream_node;
 	new_node->zRotAngle = zRotAngle;
 	new_node->xRotAngle = xRotAngle;
+	new_node->facingAngle = facingAngle;
 	new_node->next = NULL;
 	current_node->next = new_node;
 	current_node = new_node;
@@ -226,6 +228,8 @@ void writePickle(){
 	zRotArray = new float[data_length];
 	float * xRotArray;
 	xRotArray = new float[data_length];
+	float * facingAngle;
+	facingAngle = new float[data_length];
 
 	// fill arrays, first node holds no data
 	current_node = data_stream->next;
@@ -233,6 +237,7 @@ void writePickle(){
 	for (int i = 0; i < data_length - 1; i++){
 		zRotArray[i] = current_node->zRotAngle;
 		xRotArray[i] = current_node->xRotAngle;
+		facingAngle[i] = current_node->facingAngle;
 		temp_node = current_node;
 		current_node = temp_node->next;
 		delete temp_node;
@@ -294,6 +299,13 @@ void writePickle(){
 		for (int i = 1; i < data_length - 1; i++){
 			output_file << "aF" << xRotArray[i] << "\n";
 		}
+		output_file << "asS'facingAngle'" << "\n";
+		output_file << "p6" << "\n";
+		output_file << "(lp7" << "\n";
+		output_file << "F" << facingAngle[0] << "\n";
+		for (int i = 1; i < data_length - 1; i++){
+			output_file << "aF" << facingAngle[i] << "\n";
+		}
 		output_file << "as.";
 		output_file.close();
 	}
@@ -350,14 +362,20 @@ void drawKinectData() {
 	if (testTracked){
 
 		// Torso & Head
-		glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
-		glVertex2f(SkeletonToScreen(spn)[0], SkeletonToScreen(spn)[1]);
+		//if (hip.w == 1 && spn.w == 1){ // checking to see if both points are fully tracked, and not estimated
+			glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
+			glVertex2f(SkeletonToScreen(spn)[0], SkeletonToScreen(spn)[1]);
+		//}
 
-		glVertex2f(SkeletonToScreen(spn)[0], SkeletonToScreen(spn)[1]);
-		glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
+		//if (spn.w == 1 && shc.w == 1){ // checking to see if both points are fully tracked, and not estimated
+			glVertex2f(SkeletonToScreen(spn)[0], SkeletonToScreen(spn)[1]);
+			glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
+		//}
 
-		glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
-		glVertex2f(SkeletonToScreen(head)[0], SkeletonToScreen(head)[1]);
+		//if (shc.w == 1 && head.w == 1){ // checking to see if both points are fully tracked, and not estimated
+			glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
+			glVertex2f(SkeletonToScreen(head)[0], SkeletonToScreen(head)[1]);
+		//}
 
 		// Left Arm etc
 		glVertex2f(SkeletonToScreen(lh)[0], SkeletonToScreen(lh)[1]);
@@ -419,6 +437,7 @@ void drawKinectData() {
 	// Leg angles and their output to screen.
 	float fVal1 = 0;
 	float fVal2 = 0;
+	float facingAngle = 0;
 	if (testTracked){
 		Vector3D* UpperLegRotZ = NULL;
 		Vector3D* UpperLegRotX = NULL;
@@ -446,7 +465,7 @@ void drawKinectData() {
 		Vector3D& rightHipPointToLeft = Vector3D(lhip.x - rhip.x, 0, lhip.z - rhip.z); 
 		planeNormal = Vector3D(0, -1, 0);
 		Vector3D& straightFacing = Vector3D(-1, 0, 0); // must align with rightHipPointToLeftVector for skeleton to be facing straight forward
-		float facingAngle = twoVectorAngle(rightHipPointToLeft, straightFacing, planeNormal);
+		facingAngle = twoVectorAngle(rightHipPointToLeft, straightFacing, planeNormal);
 
 		delete UpperLegRotZ;
 		UpperLegRotZ = NULL;
@@ -522,12 +541,12 @@ void drawKinectData() {
 	}	
 	// Program actions
 	if (record_data == TRUE && save_data == FALSE){
-		appendData(fVal1, fVal2);
+		appendData(fVal1, fVal2, facingAngle);
 	}
 	else if (record_data == TRUE && save_data == TRUE && guard_trap == FALSE){
 		record_data = FALSE;
 		save_data = FALSE;
-		appendData(fVal1, fVal2);
+		appendData(fVal1, fVal2, facingAngle);
 		writePickle();
 	}
 	else if (record_data == FALSE && save_data == TRUE && data_stream->next != NULL && guard_trap == FALSE){
@@ -552,6 +571,7 @@ int main(int argc, char* argv[]) {
 	data_stream->next = NULL;
 	data_stream->zRotAngle = 0;
 	data_stream->xRotAngle = 0;
+	data_stream->facingAngle = 0;
 	current_node = data_stream;
 	
     // Initialize textures
