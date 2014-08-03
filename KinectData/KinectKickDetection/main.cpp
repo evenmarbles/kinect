@@ -195,7 +195,7 @@ float twoVectorAngle(Vector3D vectorA, Vector3D vectorB, Vector3D planeNormal)
 	}
 
 	// uncomment for degrees
-	 segmentAngle = segmentAngle *(180 / M_PI);
+	// segmentAngle = segmentAngle *(180 / M_PI);
 
 	return segmentAngle;
 
@@ -410,9 +410,11 @@ void drawKinectData() {
 
 		glVertex2f(SkeletonToScreen(rhip)[0], SkeletonToScreen(rhip)[1]);
 		glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
-
 	}
 	glEnd();
+
+
+
 
 	// Leg angles and their output to screen.
 	float fVal1 = 0;
@@ -420,34 +422,36 @@ void drawKinectData() {
 	if (testTracked){
 		Vector3D* UpperLegRotZ = NULL;
 		Vector3D* UpperLegRotX = NULL;
-		Vector3D* planeNormal = NULL;
+
 		int screen_position[2];
 		if (active_leg == 1){ // Left leg is selected. Default value.
 			UpperLegRotZ = new Vector3D(lk.x - lhip.x, lk.y - lhip.y, 0);
 			UpperLegRotX = new Vector3D(0, lk.y - lhip.y, lk.z - lhip.z);
-			planeNormal = new Vector3D(0, 0, 1);
 			screen_position[0] = SkeletonToScreen(lhip)[0];
 			screen_position[1] = SkeletonToScreen(lhip)[1];
 		}
 		else if (active_leg == 2){ // Left leg is selected.
 			UpperLegRotZ = new Vector3D(rk.x - rhip.x, rk.y - rhip.y, 0);
 			UpperLegRotX = new Vector3D(0, rk.y - rhip.y, rk.z - rhip.z);
-			planeNormal = new Vector3D(0, 0, -1);
 			screen_position[0] = SkeletonToScreen(rhip)[0];
 			screen_position[1] = SkeletonToScreen(rhip)[1];
 		}
 		// Creating vector to measure leg angle against and calculating the angles for rotation around z-achsis and x-achsis.		
 		Vector3D& jointAttachedPendulum = Vector3D(0, -1, 0);
-		fVal1 = twoVectorAngle(*UpperLegRotZ, jointAttachedPendulum, *planeNormal);
-		planeNormal = new Vector3D(-1, 0, 0);
-		fVal2 = twoVectorAngle(*UpperLegRotX, jointAttachedPendulum, *planeNormal); 
+		Vector3D& planeNormal = Vector3D(0, 0, 1);
+		fVal1 = twoVectorAngle(*UpperLegRotZ, jointAttachedPendulum, planeNormal);
+		planeNormal = Vector3D(-1, 0, 0);
+		fVal2 = twoVectorAngle(*UpperLegRotX, jointAttachedPendulum, planeNormal); 
+		// Constructing the calculation for a camera facing vector
+		Vector3D& rightHipPointToLeft = Vector3D(lhip.x - rhip.x, 0, lhip.z - rhip.z); 
+		planeNormal = Vector3D(0, -1, 0);
+		Vector3D& straightFacing = Vector3D(-1, 0, 0); // must align with rightHipPointToLeftVector for skeleton to be facing straight forward
+		float facingAngle = twoVectorAngle(rightHipPointToLeft, straightFacing, planeNormal);
 
 		delete UpperLegRotZ;
 		UpperLegRotZ = NULL;
 		delete UpperLegRotX;
 		UpperLegRotX = NULL;
-		delete planeNormal;
-		planeNormal = NULL;
 
 		// Write angle of the rotation around z to screen by converting float to char array and printing to screen above the joints.
 		glColor3f(0.f, 1.f, 0.f);
@@ -460,11 +464,34 @@ void drawKinectData() {
 		}
 		// New screen position for angle of the rotation around x.
 		glRasterPos2f(screen_position[0] - 20, screen_position[1] - 40);
-		sprintf_s(cVal, "%f", fVal2);
+		sprintf_s(cVal, "%f", facingAngle);
 		outputText = cVal;
 		for (int i = 0; i < 4; i++) {
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, outputText[i]);
 		}
+		
+		// Drawing the orientation cicle
+
+		glLineWidth(5.0);
+		glBegin(GL_LINES);
+		glColor3f(0.f, 0.f, 1.f);
+
+	/*	for (int i = 0; i < 360; i = i+10) {
+		glVertex2f(570 + sin(i) * 50, 70 + cos(i) * 50);
+		glVertex2f(570 + sin(i+5) * 50, 70 + cos(i+5) * 50);
+
+		}*/
+
+		
+		glVertex2f(570, 70);  // -sin for y
+		glVertex2f(570 + cos(facingAngle) * 50 , 70 - sin(facingAngle) * 50); // -sin for y
+
+
+		glEnd();
+
+
+
+
 		// Guards:
 		// catch legs that are not fully tracked and bad angles
 		if (lk.w == 0 || lhip.w == 0){
