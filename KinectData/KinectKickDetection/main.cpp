@@ -133,6 +133,12 @@ void getSkeletalData() {
 					if (skeleton.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_NOT_TRACKED) {
 						skeletonPosition[i].w = 0;
 					}
+					else if (skeleton.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED) {
+						skeletonPosition[i].w = 0; // change this value to 1 if you want inferred joints to be drawn onto the screen
+					}
+					else if (skeleton.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_TRACKED){
+						skeletonPosition[i].w = 1;
+					}
 				}
 				return; // Only take the data for one skeleton
 			}
@@ -362,72 +368,86 @@ void drawKinectData() {
 	if (testTracked){
 
 		// Torso & Head
-		//if (hip.w == 1 && spn.w == 1){ // checking to see if both points are fully tracked, and not estimated
+		if (hip.w == 1 && spn.w == 1){ // checking to see if both points are tracked
 			glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
 			glVertex2f(SkeletonToScreen(spn)[0], SkeletonToScreen(spn)[1]);
-		//}
-
-		//if (spn.w == 1 && shc.w == 1){ // checking to see if both points are fully tracked, and not estimated
+		}
+		if (spn.w == 1 && shc.w == 1){ // checking to see if both points are tracked
 			glVertex2f(SkeletonToScreen(spn)[0], SkeletonToScreen(spn)[1]);
 			glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
-		//}
-
-		//if (shc.w == 1 && head.w == 1){ // checking to see if both points are fully tracked, and not estimated
+		}
+		if (shc.w == 1 && head.w == 1){ // checking to see if both points are tracked
 			glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
 			glVertex2f(SkeletonToScreen(head)[0], SkeletonToScreen(head)[1]);
-		//}
-
+		}
 		// Left Arm etc
-		glVertex2f(SkeletonToScreen(lh)[0], SkeletonToScreen(lh)[1]);
-		glVertex2f(SkeletonToScreen(lw)[0], SkeletonToScreen(lw)[1]);
-
-		glVertex2f(SkeletonToScreen(lw)[0], SkeletonToScreen(lw)[1]);
-		glVertex2f(SkeletonToScreen(le)[0], SkeletonToScreen(le)[1]);
-
-		glVertex2f(SkeletonToScreen(le)[0], SkeletonToScreen(le)[1]);
-		glVertex2f(SkeletonToScreen(ls)[0], SkeletonToScreen(ls)[1]);
-
-		glVertex2f(SkeletonToScreen(ls)[0], SkeletonToScreen(ls)[1]);
-		glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
-
+		if (lh.w == 1 && lw.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(lh)[0], SkeletonToScreen(lh)[1]);
+			glVertex2f(SkeletonToScreen(lw)[0], SkeletonToScreen(lw)[1]);
+		}
+		if (lw.w == 1 && le.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(lw)[0], SkeletonToScreen(lw)[1]);
+			glVertex2f(SkeletonToScreen(le)[0], SkeletonToScreen(le)[1]);
+		}
+		if (le.w == 1 && ls.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(le)[0], SkeletonToScreen(le)[1]);
+			glVertex2f(SkeletonToScreen(ls)[0], SkeletonToScreen(ls)[1]);
+		}
+		if (ls.w == 1 && shc.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(ls)[0], SkeletonToScreen(ls)[1]);
+			glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
+		}
 		// Right Arm etc
-		glVertex2f(SkeletonToScreen(rh)[0], SkeletonToScreen(rh)[1]);
-		glVertex2f(SkeletonToScreen(rw)[0], SkeletonToScreen(rw)[1]);
-
-		glVertex2f(SkeletonToScreen(rw)[0], SkeletonToScreen(rw)[1]);
-		glVertex2f(SkeletonToScreen(re)[0], SkeletonToScreen(re)[1]);
-
-		glVertex2f(SkeletonToScreen(re)[0], SkeletonToScreen(re)[1]);
-		glVertex2f(SkeletonToScreen(rs)[0], SkeletonToScreen(rs)[1]);
-
-		glVertex2f(SkeletonToScreen(rs)[0], SkeletonToScreen(rs)[1]);
-		glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
-
+		if (rh.w == 1 && rw.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(rh)[0], SkeletonToScreen(rh)[1]);
+			glVertex2f(SkeletonToScreen(rw)[0], SkeletonToScreen(rw)[1]);
+		}
+		if (rw.w == 1 && re.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(rw)[0], SkeletonToScreen(rw)[1]);
+			glVertex2f(SkeletonToScreen(re)[0], SkeletonToScreen(re)[1]);
+		}
+		if (re.w == 1 && rs.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(re)[0], SkeletonToScreen(re)[1]);
+			glVertex2f(SkeletonToScreen(rs)[0], SkeletonToScreen(rs)[1]);
+		}
+		if (rs.w == 1 && shc.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(rs)[0], SkeletonToScreen(rs)[1]);
+			glVertex2f(SkeletonToScreen(shc)[0], SkeletonToScreen(shc)[1]);
+		}
 		// Left Leg etc
-		glVertex2f(SkeletonToScreen(lf)[0], SkeletonToScreen(lf)[1]);
-		glVertex2f(SkeletonToScreen(la)[0], SkeletonToScreen(la)[1]);
-
-		glVertex2f(SkeletonToScreen(la)[0], SkeletonToScreen(la)[1]);
-		glVertex2f(SkeletonToScreen(lk)[0], SkeletonToScreen(lk)[1]);
-
-		glVertex2f(SkeletonToScreen(lk)[0], SkeletonToScreen(lk)[1]);
-		glVertex2f(SkeletonToScreen(lhip)[0], SkeletonToScreen(lhip)[1]);
-
-		glVertex2f(SkeletonToScreen(lhip)[0], SkeletonToScreen(lhip)[1]);
-		glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
-
+		if (lf.w == 1 && la.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(lf)[0], SkeletonToScreen(lf)[1]);
+			glVertex2f(SkeletonToScreen(la)[0], SkeletonToScreen(la)[1]);
+		}
+		if (la.w == 1 && lk.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(la)[0], SkeletonToScreen(la)[1]);
+			glVertex2f(SkeletonToScreen(lk)[0], SkeletonToScreen(lk)[1]);
+		}
+		if (lk.w == 1 && lhip.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(lk)[0], SkeletonToScreen(lk)[1]);
+			glVertex2f(SkeletonToScreen(lhip)[0], SkeletonToScreen(lhip)[1]);
+		}
+		if (lhip.w == 1 && hip.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(lhip)[0], SkeletonToScreen(lhip)[1]);
+			glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
+		}
 		// Right Leg etc
-		glVertex2f(SkeletonToScreen(rf)[0], SkeletonToScreen(rf)[1]);
-		glVertex2f(SkeletonToScreen(ra)[0], SkeletonToScreen(ra)[1]);
-
-		glVertex2f(SkeletonToScreen(ra)[0], SkeletonToScreen(ra)[1]);
-		glVertex2f(SkeletonToScreen(rk)[0], SkeletonToScreen(rk)[1]);
-
-		glVertex2f(SkeletonToScreen(rk)[0], SkeletonToScreen(rk)[1]);
-		glVertex2f(SkeletonToScreen(rhip)[0], SkeletonToScreen(rhip)[1]);
-
-		glVertex2f(SkeletonToScreen(rhip)[0], SkeletonToScreen(rhip)[1]);
-		glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
+		if (rf.w == 1 && ra.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(rf)[0], SkeletonToScreen(rf)[1]);
+			glVertex2f(SkeletonToScreen(ra)[0], SkeletonToScreen(ra)[1]);
+		}
+		if (ra.w == 1 && rk.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(ra)[0], SkeletonToScreen(ra)[1]);
+			glVertex2f(SkeletonToScreen(rk)[0], SkeletonToScreen(rk)[1]);
+		}
+		if (rk.w == 1 && rhip.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(rk)[0], SkeletonToScreen(rk)[1]);
+			glVertex2f(SkeletonToScreen(rhip)[0], SkeletonToScreen(rhip)[1]);
+		}
+		if (rhip.w == 1 && hip.w == 1){ // checking to see if both points are tracked
+			glVertex2f(SkeletonToScreen(rhip)[0], SkeletonToScreen(rhip)[1]);
+			glVertex2f(SkeletonToScreen(hip)[0], SkeletonToScreen(hip)[1]);
+		}
 	}
 	glEnd();
 
