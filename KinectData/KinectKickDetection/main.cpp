@@ -273,11 +273,16 @@ void writePickle(){
 		output_file << std::endl;
 		output_file << "xRotAngle," << std::endl;
 		for (int i = 0; i < data_length - 1; i++){
+			output_file << xRotArray[i] << ",";
+		}
+		output_file << std::endl;		
+		output_file << "facingAngle," << std::endl;
+		for (int i = 0; i < data_length - 1; i++){
 			if (i < data_length - 2){
-				output_file << xRotArray[i] << ",";
+				output_file << facingAngle[i] << ",";
 			}
 			else {
-				output_file << xRotArray[i] << std::endl;
+				output_file << facingAngle[i] << std::endl;
 			}
 		}
 		output_file.close();
@@ -451,9 +456,6 @@ void drawKinectData() {
 	}
 	glEnd();
 
-
-
-
 	// Leg angles and their output to screen.
 	float fVal1 = 0;
 	float fVal2 = 0;
@@ -524,10 +526,10 @@ void drawKinectData() {
 		// arrow shaft
 		glVertex2f(570 + sin(facingAngle) * 50, 70 - cos(facingAngle) * 50);
 		glVertex2f(570 - sin(facingAngle) * 50 , 70 + cos(facingAngle) * 50); 
-		// arrow tip 1
+		// arrow tip part 1
 		glVertex2f(570 - sin(facingAngle+0.4) * 30, 70 + cos(facingAngle+0.4) * 30);
 		glVertex2f(570 - sin(facingAngle) * 50, 70 + cos(facingAngle) * 50);
-		// arrow tip 2
+		// arrow tip part 2
 		glVertex2f(570 - sin(facingAngle - 0.4) * 30, 70 + cos(facingAngle - 0.4) * 30);
 		glVertex2f(570 - sin(facingAngle) * 50, 70 + cos(facingAngle) * 50);
 		glEnd();
